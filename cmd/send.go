@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"log"
+	"net"
 
 	"github.com/spf13/cobra"
 )
@@ -16,7 +17,7 @@ var sendCmd = &cobra.Command{
 	Long:  "Send a magic packet to wake up a device on the network",
 	Args:  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
-		mac, err := validateMacAddress(args[0])
+		mac, err := net.ParseMAC(args[0])
 		if err != nil {
 			cobra.CheckErr(err)
 		}
@@ -31,12 +32,30 @@ var sendCmd = &cobra.Command{
 	},
 }
 
-func validateMacAddress(mac string) (string, error) {
-	// TODO: Validate MAC address format
-	return mac, nil
-}
+func sendMagicPacket(mac net.HardwareAddr) error {
+	// Build magic packet
+	// Create a buffer for the magic packet
+	packet := make([]byte, 102)
+	// Set the synchronization stream (first 6 bytes are 0xFF)
+	for i := 0; i < 6; i++ {
+		packet[i] = 0xFF
+	}
+	// Copy the MAC address 16 times into the packet
+	for i := 1; i <= 16; i++ {
+		copy(packet[i*6:], mac)
+	}
 
-func sendMagicPacket(mac string) error {
-	// TODO: Send magic packet to the device
-	return nil
+	// Broadcast magic packet
+	addr := &net.UDPAddr{
+		IP:   net.IPv4bcast,
+		Port: 9,
+	}
+	conn, err := net.DialUDP("udp", nil, addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	_, err = conn.Write(packet)
+	return err
 }

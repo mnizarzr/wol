@@ -13,8 +13,8 @@ func init() {
 
 var sendCmd = &cobra.Command{
 	Use:   "send [mac address]",
-	Short: "Send a magic packet to wake up a device",
-	Long:  "Send a magic packet to wake up a device on the network",
+	Short: "Send a magic packet to specified mac address",
+	Long:  "Send a magic packet to wake up a device on the network using the specified mac address",
 	Args:  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
 		mac, err := net.ParseMAC(args[0])

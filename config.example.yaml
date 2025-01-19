@@ -1,0 +1,5 @@
+machines:
+  - name: desktop
+    mac: 00:00:00:00:00:01
+  - name: laptop
+    mac: 00:00:00:00:00:02

@@ -1,4 +1,7 @@
+# Build artifacts
 wol
 *.exe
+dist/
 
+# Local config file
 config.yaml

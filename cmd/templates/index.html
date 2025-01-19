@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦭</text></svg>">
+    <title>wol</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --accent-color: #2563eb;
+            --hover-color: #1d4ed8;
+            --card-bg: #f8fafc;
+        }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+        }
+        
+        .page {
+            font-family: monospace;
+            background: var(--bg-color);
+            color: var(--text-color);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .page__content {
+            flex: 1 0 auto;
+        }
+
+        .page__title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            color: var(--accent-color);
+        }
+
+        .machines {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            padding: 0;
+            list-style: none;
+        }
+
+        .machine {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            border-radius: 4px;
+        }
+
+        .machine__info {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .machine__name {
+            font-weight: bold;
+        }
+
+        .machine__mac {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .machine__wake-button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-family: monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 4px;
+        }
+
+        .machine__wake-button:hover {
+            background: var(--hover-color);
+        }
+
+        .machines--empty {
+            color: #666;
+            text-align: center;
+            padding: 2rem;
+            border: 1px dashed var(--border-color);
+            background: var(--card-bg);
+            border-radius: 4px;
+        }
+
+        .footer {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .footer__links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer__link {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .footer__link:hover {
+            text-decoration: underline;
+        }
+
+        .footer__version {
+            font-size: 0.8rem;
+        }
+
+        .footer__ascii {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="page">
+    <div class="page__content">
+        <h1 class="page__title">wol</h1>
+        {{if .Machines}}
+            <ul class="machines">
+                {{range .Machines}}
+                <li class="machine">
+                    <div class="machine__info">
+                        <div class="machine__name">{{.Name}}</div>
+                        <div class="machine__mac">{{.Mac}}</div>
+                    </div>
+                    <form action="/wake" method="POST" style="margin: 0;">
+                        <input type="hidden" name="name" value="{{.Name}}">
+                        <button type="submit" class="machine__wake-button">Wake</button>
+                    </form>
+                </li>
+                {{end}}
+            </ul>
+        {{else}}
+            <p class="machines--empty">No machines configured</p>
+        {{end}}
+    </div>
+    <footer class="footer">
+        <div class="footer__links">
+            <a href="https://github.com/Trugamr/wol" class="footer__link" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://github.com/Trugamr/wol/issues" class="footer__link" target="_blank" rel="noopener noreferrer">Report Issue</a>
+            <a href="https://github.com/Trugamr/wol/blob/main/README.md" class="footer__link" target="_blank" rel="noopener noreferrer">Documentation</a>
+        </div>
+        <div class="footer__version">Crafted with <span class="footer__ascii">❤︎</span> by <a href="https://github.com/Trugamr" class="footer__link" target="_blank" rel="noopener noreferrer">Trugamr</a></div>
+    </footer>
+</body>
+</html>

@@ -52,17 +52,9 @@ var sendCmd = &cobra.Command{
 			}
 
 			// Find machine with the specified name
-			for _, machine := range cfg.Machines {
-				if strings.EqualFold(machine.Name, name) {
-					mac, err = net.ParseMAC(machine.Mac)
-					if err != nil {
-						cobra.CheckErr(err)
-					}
-				}
-			}
-
-			if mac == nil {
-				cobra.CheckErr(fmt.Errorf("machine with name %q not found", name))
+			mac, err = getMacByName(name)
+			if err != nil {
+				cobra.CheckErr(err)
 			}
 		default:
 			log.Fatalf("mac address should come from either --mac or --name")
@@ -76,6 +68,21 @@ var sendCmd = &cobra.Command{
 
 		log.Printf("Magic packet sent")
 	},
+}
+
+// getMacByName returns the MAC address of the machine with the specified name
+func getMacByName(name string) (net.HardwareAddr, error) {
+	for _, machine := range cfg.Machines {
+		if strings.EqualFold(machine.Name, name) {
+			mac, err := net.ParseMAC(machine.Mac)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse MAC address: %w", err)
+			}
+			return mac, nil
+		}
+	}
+
+	return nil, fmt.Errorf("machine with name %q not found", name)
 }
 
 func sendMagicPacket(mac net.HardwareAddr) error {

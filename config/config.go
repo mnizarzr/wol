@@ -68,6 +68,7 @@ func (c *Config) Load() error {
 
 	// Order here matters as later values will override earlier ones
 	paths := []string{
+		filepath.Join("/etc", "wol", configFilename),
 		filepath.Join(home, ".wol", configFilename),
 		filepath.Join(".", configFilename),
 	}

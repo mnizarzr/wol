@@ -3,3 +3,5 @@ machines:
     mac: 00:00:00:00:00:01
   - name: laptop
     mac: 00:00:00:00:00:02
+server:
+  listen: 0.0.0.0:7777

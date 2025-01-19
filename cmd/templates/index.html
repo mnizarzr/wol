@@ -132,6 +132,11 @@
             font-size: 0.8rem;
         }
 
+        .footer__credit {
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
         .footer__ascii {
             color: var(--accent-color);
             font-weight: bold;
@@ -166,7 +171,6 @@
             <a href="https://github.com/Trugamr/wol/issues" class="footer__link" target="_blank" rel="noopener noreferrer">Report Issue</a>
             <a href="https://github.com/Trugamr/wol/blob/main/README.md" class="footer__link" target="_blank" rel="noopener noreferrer">Documentation</a>
         </div>
-        <div class="footer__version">Crafted with <span class="footer__ascii">❤︎</span> by <a href="https://github.com/Trugamr" class="footer__link" target="_blank" rel="noopener noreferrer">Trugamr</a></div>
+        <div class="footer__credit">Crafted with <span class="footer__ascii">❤︎</span> by <a href="https://github.com/Trugamr" class="footer__link" target="_blank" rel="noopener noreferrer">Trugamr</a></div>
+        <div class="footer__version">Version: {{.Version}} ({{.Commit}}) - Built at: {{.Date}}</div>
     </footer>
-</body>
-</html>

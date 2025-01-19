@@ -45,9 +45,13 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Execute the template
-	err = index.Execute(w, map[string]interface{}{
+	data := map[string]interface{}{
 		"Machines": cfg.Machines,
-	})
+		"Version":  version,
+		"Commit":   commit,
+		"Date":     date,
+	}
+	err = index.Execute(w, data)
 	if err != nil {
 		log.Printf("Error executing template: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

@@ -12,6 +12,11 @@ builds:
       - linux
       - windows
       - darwin
+    ldflags:
+      - -s -w
+      - -X github.com/trugamr/wol/cmd.version={{.Version}}
+      - -X github.com/trugamr/wol/cmd.commit={{.Commit}}
+      - -X github.com/trugamr/wol/cmd.date={{.Date}}
 
 archives:
   - format: tar.gz

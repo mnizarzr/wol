@@ -3,7 +3,7 @@
 A CLI tool to send Wake-On-LAN (WOL) magic packets to wake up devices on your
 network. Features both CLI commands and a web interface.
 
-<img src="assets/images/web.png" alt="Web Interface" width="720">
+<img src="assets/images/web.png" alt="Web Interface" />
 
 ## Features
 
@@ -46,8 +46,10 @@ Example configuration:
 machines:
   - name: desktop
     mac: "00:11:22:33:44:55"
+    ip: "192.168.1.100" # Optional, for status checking
   - name: server
     mac: "AA:BB:CC:DD:EE:FF"
+    ip: "192.168.1.101" # Optional, for status checking
 
 server:
   listen: ":7777" # Optional, defaults to :7777
@@ -81,6 +83,7 @@ command. It provides:
 
 - List of all configured machines
 - One-click wake up buttons
+- Real-time machine status monitoring (when IP is configured)
 - Version information
 - Links to documentation and support
 

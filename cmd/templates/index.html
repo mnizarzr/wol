@@ -13,6 +13,19 @@
             --accent-color: #2563eb;
             --hover-color: #1d4ed8;
             --card-bg: #f8fafc;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #111827;
+                --text-color: #f3f4f6;
+                --border-color: #1f2937;
+                --accent-color: #3b82f6;
+                --hover-color: #60a5fa;
+                --card-bg: #1e293b;
+                --shadow-color: rgba(0, 0, 0, 0.25);
+            }
         }
         
         html, body {
@@ -32,6 +45,7 @@
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .page__content {
@@ -40,10 +54,32 @@
 
         .page__title {
             font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+        }
+
+        .page__subtitle {
+            font-size: 1.15rem;
             margin-bottom: 2rem;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 1rem;
-            color: var(--accent-color);
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .section__heading {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            font-weight: bold;
+        }
+
+        .section__subtitle {
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-top: -0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
         }
 
         .machines {
@@ -61,7 +97,12 @@
             padding: 1rem;
             border: 1px solid var(--border-color);
             background: var(--card-bg);
-            border-radius: 4px;
+            border-radius: 12px;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .machine:hover {
+            box-shadow: 0 2px 4px var(--shadow-color);
         }
 
         .machine__info {
@@ -71,10 +112,12 @@
 
         .machine__name {
             font-weight: bold;
+            font-size: 1.05rem;  
         }
 
         .machine__mac {
-            color: #666;
+            color: var(--text-color);
+            opacity: 0.7;
             font-size: 0.9rem;
         }
 
@@ -87,7 +130,8 @@
             font-family: monospace;
             font-weight: bold;
             text-transform: uppercase;
-            border-radius: 4px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
         }
 
         .machine__wake-button:hover {
@@ -95,12 +139,34 @@
         }
 
         .machines--empty {
-            color: #666;
+            color: var(--text-color);
             text-align: center;
-            padding: 2rem;
-            border: 1px dashed var(--border-color);
+            padding: 3rem 2rem;
+            border: 2px dashed var(--border-color);
             background: var(--card-bg);
-            border-radius: 4px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .machines--empty__icon {
+            font-size: 3rem;
+            color: var(--accent-color);
+            opacity: 0.8;
+        }
+
+        .machines--empty__text {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .machines--empty__help {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            max-width: 400px;
+            line-height: 1.4;
         }
 
         .footer {
@@ -109,7 +175,8 @@
             border-top: 1px solid var(--border-color);
             text-align: center;
             font-size: 0.9rem;
-            color: #666;
+            color: var(--text-color);
+            opacity: 0.8;
         }
 
         .footer__links {
@@ -141,17 +208,72 @@
             color: var(--accent-color);
             font-weight: bold;
         }
+
+        .machine__status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .machine__status[data-status="unknown"] {
+            background-color: #9ca3af;
+        }
+
+        .machine__status[data-status="online"] {
+            background-color: #22c55e;
+        }
+
+        .machine__status[data-status="offline"] {
+            background-color: #ef4444;
+        }
+
+        .machine__header {
+            display: flex;
+            align-items: center;
+        }
+
+        .flash-message {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-1rem);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body class="page">
     <div class="page__content">
+        {{if .FlashMessage}}
+        <div class="flash-message">
+            {{.FlashMessage}}
+        </div>
+        {{end}}
         <h1 class="page__title">wol</h1>
+        <p class="page__subtitle">Wake-on-LAN web interface</p>
         {{if .Machines}}
+            <h2 class="section__heading">Machines</h2>
+            <p class="section__subtitle">List of configured machines and their current status</p>
             <ul class="machines">
                 {{range .Machines}}
-                <li class="machine">
+                <li class="machine" data-name="{{.Name}}">
                     <div class="machine__info">
-                        <div class="machine__name">{{.Name}}</div>
+                        <div class="machine__header">
+                            <div class="machine__status" data-status="unknown"></div>
+                            <div class="machine__name">{{.Name}}</div>
+                        </div>
                         <div class="machine__mac">{{.Mac}}</div>
                     </div>
                     <form action="/wake" method="POST" style="margin: 0;">
@@ -162,7 +284,14 @@
                 {{end}}
             </ul>
         {{else}}
-            <p class="machines--empty">No machines configured</p>
+            <div class="machines--empty">
+                <div class="machines--empty__icon">🖥️</div>
+                <p class="machines--empty__text">No machines configured</p>
+                <p class="machines--empty__help">
+                    Add machines to your configuration file to start using Wake-on-LAN. 
+                    Check the documentation for setup instructions.
+                </p>
+            </div>
         {{end}}
     </div>
     <footer class="footer">
@@ -174,3 +303,29 @@
         <div class="footer__credit">Crafted with <span class="footer__ascii">❤︎</span> by <a href="https://github.com/Trugamr" class="footer__link" target="_blank" rel="noopener noreferrer">Trugamr</a></div>
         <div class="footer__version">Version: {{.Version}} ({{.Commit}}) - Built at: {{.Date}}</div>
     </footer>
+    <script>
+        const source = new EventSource('/status');
+
+        source.onmessage = function(event) {
+            const statuses = JSON.parse(event.data);
+
+            // Get all machines on the page
+            const machines = document.querySelectorAll('.machine');
+
+            // Iterate over machines and update their status
+            for(const machine of machines) {
+                if (machine.dataset.name in statuses) {
+                    const status = statuses[machine.dataset.name];
+                    const element = machine.querySelector('.machine__status');
+                    element.dataset.status = status;
+                }
+            }
+        }
+
+        // Cleanup EventSource when page is unloaded
+        window.addEventListener('unload', () => {
+            source.close();
+        });
+    </script>
+</body>
+</html>

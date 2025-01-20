@@ -1,0 +1,6 @@
+# This Dockerfile is used to build docker image using goreleaser.
+FROM gcr.io/distroless/static-debian12
+
+COPY wol /usr/local/bin/
+
+ENTRYPOINT ["wol"]

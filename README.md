@@ -15,7 +15,7 @@ network. Features both CLI commands and a web interface.
 
 ## Installation
 
-### Download Binary
+### Pre-built binaries
 
 Download the latest release for your platform from the
 [releases page](https://github.com/trugamr/wol/releases).
@@ -31,6 +31,29 @@ Available for:
 ```sh
 go install github.com/trugamr/wol@latest
 ```
+
+### Using Docker
+
+```sh
+docker run --network host -v $(pwd)/config.yaml:/etc/wol/config.yaml ghcr.io/trugamr/wol:latest
+```
+
+Or using docker-compose:
+
+```yaml
+services:
+  wol:
+    image: ghcr.io/trugamr/wol:latest
+    command: serve # To start the web interface
+    network_mode: "host"
+    volumes:
+      - ./config.yaml:/etc/wol/config.yaml
+```
+
+> [!NOTE]
+> The config file should be mounted to `/etc/wol/config.yaml` inside the
+> container. Host networking is recommended for Wake-on-LAN packets to work
+> properly on your local network.
 
 ## Configuration
 

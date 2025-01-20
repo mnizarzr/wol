@@ -31,6 +31,49 @@ archives:
       - goos: windows
         format: zip
 
+dockers:
+  - image_templates:
+      - "ghcr.io/trugamr/wol:{{ .Version }}-amd64"
+      - "ghcr.io/trugamr/wol:latest-amd64"
+    dockerfile: docker/Dockerfile.template
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=A Wake-On-LAN tool that works via CLI and web interface"
+      - "--label=org.opencontainers.image.url=https://github.com/trugamr/wol"
+      - "--label=org.opencontainers.image.source=https://github.com/trugamr/wol"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+  - image_templates:
+      - "ghcr.io/trugamr/wol:{{ .Version }}-arm64"
+      - "ghcr.io/trugamr/wol:latest-arm64"
+    dockerfile: docker/Dockerfile.template
+    use: buildx
+    goarch: arm64
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=A Wake-On-LAN tool that works via CLI and web interface"
+      - "--label=org.opencontainers.image.url=https://github.com/trugamr/wol"
+      - "--label=org.opencontainers.image.source=https://github.com/trugamr/wol"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+
+docker_manifests:
+  - name_template: ghcr.io/trugamr/wol:{{ .Version }}
+    image_templates:
+      - ghcr.io/trugamr/wol:{{ .Version }}-amd64
+      - ghcr.io/trugamr/wol:{{ .Version }}-arm64
+  - name_template: ghcr.io/trugamr/wol:latest
+    image_templates:
+      - ghcr.io/trugamr/wol:latest-amd64
+      - ghcr.io/trugamr/wol:latest-arm64
+
 changelog:
   sort: asc
   filters:

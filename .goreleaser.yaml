@@ -12,6 +12,13 @@ builds:
       - linux
       - windows
       - darwin
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - "386"
+    goarm:
+      - "7"
     ldflags:
       - -s -w
       - -X github.com/trugamr/wol/cmd.version={{.Version}}
@@ -63,16 +70,35 @@ dockers:
       - "--label=org.opencontainers.image.created={{ .Date }}"
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.licenses=MIT"
+  - image_templates:
+      - "ghcr.io/trugamr/wol:{{ .Version }}-armv7"
+      - "ghcr.io/trugamr/wol:latest-armv7"
+    dockerfile: docker/Dockerfile.template
+    use: buildx
+    goarch: arm
+    goarm: 7
+    build_flag_templates:
+      - "--platform=linux/arm/v7"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=A Wake-On-LAN tool that works via CLI and web interface"
+      - "--label=org.opencontainers.image.url=https://github.com/trugamr/wol"
+      - "--label=org.opencontainers.image.source=https://github.com/trugamr/wol"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.licenses=MIT"
 
 docker_manifests:
   - name_template: ghcr.io/trugamr/wol:{{ .Version }}
     image_templates:
       - ghcr.io/trugamr/wol:{{ .Version }}-amd64
       - ghcr.io/trugamr/wol:{{ .Version }}-arm64
+      - ghcr.io/trugamr/wol:{{ .Version }}-armv7
   - name_template: ghcr.io/trugamr/wol:latest
     image_templates:
       - ghcr.io/trugamr/wol:latest-amd64
       - ghcr.io/trugamr/wol:latest-arm64
+      - ghcr.io/trugamr/wol:latest-armv7
 
 changelog:
   sort: asc

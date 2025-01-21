@@ -22,7 +22,7 @@ Download the latest release for your platform from the
 
 Available for:
 
-- Linux (x86_64, arm64)
+- Linux (x86_64, arm64, armv7)
 - macOS (x86_64, arm64)
 - Windows (x86_64)
 

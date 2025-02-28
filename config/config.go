@@ -7,6 +7,7 @@ import (
 
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/knadh/koanf/providers/structs"
 	"github.com/knadh/koanf/v2"
 )
@@ -50,7 +51,14 @@ func NewConfig() *Config {
 
 // Load loads the configuration from the config file
 //
-// The configuration file is searched in user's home directory and the current. Files are loaded in order and merged.
+// Configuration is loaded in the following order (later values override earlier ones):
+// 1. Default values
+// 2. Config files from:
+//   - /etc/wol/config.yaml
+//   - ~/.wol/config.yaml
+//   - ./config.yaml
+//
+// 3. Environment variable `WOL_CONFIG` containing full YAML config
 func (c *Config) Load() error {
 	// Load defaults first
 	defaults := &Config{
@@ -82,6 +90,13 @@ func (c *Config) Load() error {
 		if err != nil && !os.IsNotExist(err) {
 			return fmt.Errorf("failed to load config file: %w", err)
 		}
+	}
+
+	// Load from `WOL_CONFIG` environment variable if set
+	ec := []byte(os.Getenv("WOL_CONFIG"))
+	err = k.Load(rawbytes.Provider(ec), yaml.Parser())
+	if err != nil {
+		return fmt.Errorf("failed to load config from WOL_CONFIG: %w", err)
 	}
 
 	err = k.Unmarshal("", c)

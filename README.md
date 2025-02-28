@@ -41,6 +41,7 @@ docker run --network host -v $(pwd)/config.yaml:/etc/wol/config.yaml ghcr.io/tru
 Or using docker-compose:
 
 ```yaml
+# Method 1: Using bind mount
 services:
   wol:
     image: ghcr.io/trugamr/wol:latest
@@ -48,6 +49,24 @@ services:
     network_mode: "host"
     volumes:
       - ./config.yaml:/etc/wol/config.yaml
+
+# Method 2: Using environment variables
+services:
+  wol:
+    image: ghcr.io/trugamr/wol:latest
+    command: serve # To start the web interface
+    network_mode: "host"
+    environment:
+      WOL_CONFIG: |
+        machines:
+          - name: desktop
+            mac: "00:11:22:33:44:55"
+            ip: "192.168.1.100"
+          - name: server
+            mac: "AA:BB:CC:DD:EE:FF"
+            ip: "192.168.1.101"
+        server:
+          listen: ":7777"
 ```
 
 > [!NOTE]
@@ -62,6 +81,23 @@ Create a `config.yaml` file in one of these locations (in order of precedence):
 - `./config.yaml` (current directory)
 - `~/.wol/config.yaml` (home directory)
 - `/etc/wol/config.yaml` (system-wide)
+
+Alternatively, you can provide the configuration via the `WOL_CONFIG` environment variable:
+
+```sh
+export WOL_CONFIG='
+machines:
+  - name: desktop
+    mac: "00:11:22:33:44:55"
+    ip: "192.168.1.100" # Optional, for status checking
+  - name: server
+    mac: "AA:BB:CC:DD:EE:FF"
+    ip: "192.168.1.101" # Optional, for status checking
+
+server:
+  listen: ":7777" # Optional, defaults to :7777
+'
+```
 
 Example configuration:
 

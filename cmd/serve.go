@@ -15,6 +15,7 @@ import (
 	probing "github.com/prometheus-community/pro-bing"
 	"github.com/spf13/cobra"
 	"github.com/trugamr/wol/config"
+	"github.com/trugamr/wol/magicpacket"
 )
 
 //go:embed templates/*
@@ -104,8 +105,8 @@ func handleWake(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Sending magic packet to %s", mac)
-	err = sendMagicPacket(mac)
-	if err != nil {
+	mp := magicpacket.NewMagicPacket(mac)
+	if err := mp.Broadcast(); err != nil {
 		log.Printf("Error sending magic packet: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

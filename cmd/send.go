@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/trugamr/wol/magicpacket"
 )
 
 func init() {
@@ -30,7 +31,6 @@ var sendCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var mac net.HardwareAddr
-		var err error
 
 		// Retrieve mac address using one of the flags
 		switch true {
@@ -61,8 +61,8 @@ var sendCmd = &cobra.Command{
 		}
 
 		log.Printf("Sending magic packet to %s", mac)
-		err = sendMagicPacket(mac)
-		if err != nil {
+		mp := magicpacket.NewMagicPacket(mac)
+		if err := mp.Broadcast(); err != nil {
 			cobra.CheckErr(err)
 		}
 
@@ -83,32 +83,4 @@ func getMacByName(name string) (net.HardwareAddr, error) {
 	}
 
 	return nil, fmt.Errorf("machine with name %q not found", name)
-}
-
-func sendMagicPacket(mac net.HardwareAddr) error {
-	// Build magic packet
-	// Create a buffer for the magic packet
-	packet := make([]byte, 102)
-	// Set the synchronization stream (first 6 bytes are 0xFF)
-	for i := 0; i < 6; i++ {
-		packet[i] = 0xFF
-	}
-	// Copy the MAC address 16 times into the packet
-	for i := 1; i <= 16; i++ {
-		copy(packet[i*6:], mac)
-	}
-
-	// Broadcast magic packet
-	addr := &net.UDPAddr{
-		IP:   net.IPv4bcast,
-		Port: 9,
-	}
-	conn, err := net.DialUDP("udp", nil, addr)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	_, err = conn.Write(packet)
-	return err
 }

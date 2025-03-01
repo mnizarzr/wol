@@ -69,6 +69,9 @@ services:
           listen: ":7777"
 ```
 
+Check out `examples/reverse-proxy.yml` for an example of running wol behind
+reverse proxy with basic auth, https etc.
+
 > [!NOTE]
 > The config file should be mounted to `/etc/wol/config.yaml` inside the
 > container. Host networking is recommended for Wake-on-LAN packets to work

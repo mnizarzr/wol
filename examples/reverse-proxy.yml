@@ -1,0 +1,44 @@
+# This example shows how to run wol behind a reverse proxy without making is accessible via port from outside by listening only on the bridge network.
+# This can be extended to use any traefik features like TLS, rate limiting, etc.
+
+name: wol
+
+services:
+  traefik:
+    image: traefik:v3.3.4
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    extra_hosts:
+      # Map host.docker.internal to bridge network
+      - host.docker.internal:172.17.0.1
+
+  wol:
+    image: ghcr.io/trugamr/wol:latest
+    network_mode: host
+    command: serve
+    environment:
+      WOL_CONFIG: |
+        machines:
+          - name: desktop
+            mac: e3:2e:4a:00:00:01
+        server:
+          # Listen only on the bridge network
+          listen: 172.17.0.1:7777
+    labels:
+      traefik.enable: true
+      # Match every host and path
+      # https://doc.traefik.io/traefik/routing/routers/#rule
+      traefik.http.routers.wol.rule: PathPrefix(`/`)
+      traefik.http.routers.wol.entrypoints: web
+      # Create and add basic auth middleware
+      # Generate credentials using `htpasswd -nb username password`
+      # Note: Escaping $ in password with $$ maybe required
+      traefik.http.middlewares.auth.basicauth.users: "admin:$$apr1$$Qb.3XKXp$$zR5u/t.DrvejOkMIsCSYJ0"
+      traefik.http.routers.wol.middlewares: auth
+      traefik.http.services.wol.loadbalancer.server.port: 7777

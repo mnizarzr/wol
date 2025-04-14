@@ -163,6 +163,22 @@ go build
 ./wol
 ```
 
+## Known Issues
+
+### Docker Container Ping Permissions
+
+When running in a Docker container, the machine status feature that uses ping may not work due to permission issues. This is because the application uses [pro-bing](https://github.com/prometheus-community/pro-bing) for sending pings, which requires specific Linux kernel settings.
+
+To fix this issue, you need to set the following sysctl parameter on your host system:
+
+```sh
+sysctl -w net.ipv4.ping_group_range="0 2147483647"
+```
+
+To make this change persistent, add it to your `/etc/sysctl.conf` file.
+
+For more details, see [issue #12](https://github.com/Trugamr/wol/issues/12).
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE.md)

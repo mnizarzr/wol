@@ -61,12 +61,12 @@ services:
         machines:
           - name: desktop
             mac: "00:11:22:33:44:55"
-            ip: "192.168.1.100"
+            ip: "192.168.1.100" # Optional, for status checking
           - name: server
             mac: "AA:BB:CC:DD:EE:FF"
-            ip: "192.168.1.101"
+            ip: "server.local"
         server:
-          listen: ":7777"
+          listen: ":7777" # Optional, defaults to :7777
 ```
 
 Check out `examples/reverse-proxy.yml` for an example of running wol behind
@@ -95,7 +95,7 @@ machines:
     ip: "192.168.1.100" # Optional, for status checking
   - name: server
     mac: "AA:BB:CC:DD:EE:FF"
-    ip: "192.168.1.101" # Optional, for status checking
+    ip: "server.local"
 
 server:
   listen: ":7777" # Optional, defaults to :7777
@@ -111,7 +111,7 @@ machines:
     ip: "192.168.1.100" # Optional, for status checking
   - name: server
     mac: "AA:BB:CC:DD:EE:FF"
-    ip: "192.168.1.101" # Optional, for status checking
+    ip: "server.local"
 
 server:
   listen: ":7777" # Optional, defaults to :7777

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"log"
-	"net"
 	"net/http"
 	"sync"
 	"time"
@@ -122,15 +121,8 @@ func getMachineStatus(machine config.Machine) (string, error) {
 	if machine.IP == nil {
 		return "unknown", nil
 	}
-	ip := net.ParseIP(*machine.IP)
-	if ip == nil {
-		return "unknown", fmt.Errorf("invalid IP address: %s", *machine.IP)
-	}
 
-	// if !isAddressReachable(ip) {
-	// 	return "offline", nil
-	// }
-	reachable, err := isAddressReachable(ip)
+	reachable, err := isAddressReachable(*machine.IP)
 	if err != nil {
 		return "unknown", err
 	}
@@ -208,8 +200,8 @@ func handleStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func isAddressReachable(ip net.IP) (bool, error) {
-	pinger, err := probing.NewPinger(ip.String())
+func isAddressReachable(addr string) (bool, error) {
+	pinger, err := probing.NewPinger(addr)
 	if err != nil {
 		return false, fmt.Errorf("error creating pinger: %v", err)
 	}

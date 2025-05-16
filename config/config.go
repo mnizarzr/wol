@@ -36,12 +36,20 @@ type Server struct {
 	Listen string `koanf:"listen"`
 }
 
+// Ping represents the ping configuration
+type Ping struct {
+	// Privileged determines if privileged ping should be used
+	Privileged bool `koanf:"privileged"`
+}
+
 // Config represents the configuration for the application
 type Config struct {
 	// Machines represents the list of machines to wake up
 	Machines []Machine `koanf:"machines"`
 	// Server represents the server configuration
 	Server Server `koanf:"server"`
+	// Ping represents the ping configuration
+	Ping Ping `koanf:"ping"`
 }
 
 // NewConfig creates a new Config instance
@@ -64,6 +72,9 @@ func (c *Config) Load() error {
 	defaults := &Config{
 		Server: Server{
 			Listen: ":7777",
+		},
+		Ping: Ping{
+			Privileged: false,
 		},
 	}
 	err := k.Load(structs.Provider(defaults, koanfTag), nil)

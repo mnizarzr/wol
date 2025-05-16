@@ -5,3 +5,6 @@ machines:
     mac: 00:00:00:00:00:02
 server:
   listen: 0.0.0.0:7777
+# Check: https://github.com/prometheus-community/pro-bing?tab=readme-ov-file#supported-operating-systems
+ping:
+  privileged: false

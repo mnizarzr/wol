@@ -8,7 +8,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"runtime"
 	"sync"
 	"time"
 
@@ -214,10 +213,8 @@ func isAddressReachable(ip net.IP) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("error creating pinger: %v", err)
 	}
-	// https://github.com/prometheus-community/pro-bing?tab=readme-ov-file#windows
-	if runtime.GOOS == "windows" {
-		pinger.SetPrivileged(true)
-	}
+	// Set privileged mode based on config
+	pinger.SetPrivileged(cfg.Ping.Privileged)
 
 	// We only want to ping once and wait 2 seconds for a response
 	pinger.Timeout = 2 * time.Second

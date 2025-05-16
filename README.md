@@ -67,6 +67,8 @@ services:
             ip: "server.local"
         server:
           listen: ":7777" # Optional, defaults to :7777
+        ping:
+          privileged: false # Optional, set to true to use privileged ping
 ```
 
 Check out `examples/reverse-proxy.yml` for an example of running wol behind
@@ -115,6 +117,9 @@ machines:
 
 server:
   listen: ":7777" # Optional, defaults to :7777
+
+ping:
+  privileged: false # Optional, set to true if you need privileged ping
 ```
 
 ## Usage
@@ -176,6 +181,8 @@ sysctl -w net.ipv4.ping_group_range="0 2147483647"
 ```
 
 To make this change persistent, add it to your `/etc/sysctl.conf` file.
+
+You can also try experimenting with setting `ping.privileged: true` in your configuration as an alternative solution.
 
 For more details, see [issue #12](https://github.com/Trugamr/wol/issues/12).
 

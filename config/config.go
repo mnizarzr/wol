@@ -26,7 +26,7 @@ type Machine struct {
 	Name string `koanf:"name"`
 	// MAC address of the machine
 	Mac string `koanf:"mac"`
-	// IP address of the machine (optional)
+	// Hostname or IP address of the machine (optional)
 	IP *string `koanf:"ip"`
 }
 

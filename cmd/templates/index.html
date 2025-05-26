@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦭</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦭</text></svg>">
     <title>wol</title>
     <style>
         :root {
@@ -27,18 +29,19 @@
                 --shadow-color: rgba(0, 0, 0, 0.25);
             }
         }
-        
-        html, body {
+
+        html,
+        body {
             margin: 0;
             padding: 0;
             min-height: 100%;
         }
-        
+
         .page {
             font-family: monospace;
             background: var(--bg-color);
             color: var(--text-color);
-            max-width: 1000px;
+            max-width: 1280px;
             margin: 0 auto;
             padding: 2rem;
             min-height: 100dvh;
@@ -93,6 +96,7 @@
         .machine {
             display: grid;
             grid-template-columns: 1fr auto;
+            gap: 1rem;
             align-items: center;
             padding: 1rem;
             border: 1px solid var(--border-color);
@@ -112,7 +116,7 @@
 
         .machine__name {
             font-weight: bold;
-            font-size: 1.05rem;  
+            font-size: 1.05rem;
         }
 
         .machine__mac {
@@ -136,6 +140,28 @@
 
         .machine__wake-button:hover {
             background: var(--hover-color);
+        }
+
+        .machine__sleep-button {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-family: monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+
+        .machine__sleep-button:hover {
+            background: #dc2626;
+        }
+
+        .machine__buttons {
+            display: flex;
+            gap: 0.5rem;
         }
 
         .machines--empty {
@@ -247,6 +273,7 @@
                 transform: translateY(-1rem);
                 opacity: 0;
             }
+
             to {
                 transform: translateY(0);
                 opacity: 1;
@@ -254,6 +281,7 @@
         }
     </style>
 </head>
+
 <body class="page">
     <div class="page__content">
         {{if .FlashMessage}}
@@ -264,68 +292,88 @@
         <h1 class="page__title">wol</h1>
         <p class="page__subtitle">Wake-on-LAN web interface</p>
         {{if .Machines}}
-            <h2 class="section__heading">Machines</h2>
-            <p class="section__subtitle">List of configured machines and their current status</p>
-            <ul class="machines">
-                {{range .Machines}}
-                <li class="machine" data-name="{{.Name}}">
-                    <div class="machine__info">
-                        <div class="machine__header">
-                            <div class="machine__status" data-status="unknown"></div>
-                            <div class="machine__name">{{.Name}}</div>
-                        </div>
-                        <div class="machine__mac">{{.Mac}}</div>
+        <h2 class="section__heading">Machines</h2>
+        <p class="section__subtitle">List of configured machines and their current status</p>
+        <ul class="machines">
+            {{range .Machines}}
+            <li class="machine" data-name="{{.Name}}">
+                <div class="machine__info">
+                    <div class="machine__header">
+                        <div class="machine__status" data-status="unknown"></div>
+                        <div class="machine__name">{{.Name}}</div>
                     </div>
-                    <form action="/wake" method="POST" style="margin: 0;">
+                    <div class="machine__mac">{{.Mac}}</div>
+                </div>
+                <div class="machine__buttons">
+                    <form action="/wake" method="POST" style="margin: 0;" onsubmit="return confirmWake('{{.Name}}')">
                         <input type="hidden" name="name" value="{{.Name}}">
                         <button type="submit" class="machine__wake-button">Wake</button>
                     </form>
-                </li>
-                {{end}}
-            </ul>
+                    <form action="/sleep" method="POST" style="margin: 0;" onsubmit="return confirmSleep('{{.Name}}')">
+                        <input type="hidden" name="name" value="{{.Name}}">
+                        <button type="submit" class="machine__sleep-button">Sleep</button>
+                    </form>
+                </div>
+            </li>
+            {{end}}
+        </ul>
         {{else}}
-            <div class="machines--empty">
-                <div class="machines--empty__icon">🖥️</div>
-                <p class="machines--empty__text">No machines configured</p>
-                <p class="machines--empty__help">
-                    Add machines to your configuration file to start using Wake-on-LAN. 
-                    Check the documentation for setup instructions.
-                </p>
-            </div>
+        <div class="machines--empty">
+            <div class="machines--empty__icon">🖥️</div>
+            <p class="machines--empty__text">No machines configured</p>
+            <p class="machines--empty__help">
+                Add machines to your configuration file to start using Wake-on-LAN.
+                Check the documentation for setup instructions.
+            </p>
+        </div>
         {{end}}
     </div>
     <footer class="footer">
         <div class="footer__links">
-            <a href="https://github.com/Trugamr/wol" class="footer__link" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a href="https://github.com/Trugamr/wol/issues" class="footer__link" target="_blank" rel="noopener noreferrer">Report Issue</a>
-            <a href="https://github.com/Trugamr/wol/blob/main/README.md" class="footer__link" target="_blank" rel="noopener noreferrer">Documentation</a>
+            <a href="https://github.com/mnizarzr/wol" class="footer__link" target="_blank"
+                rel="noopener noreferrer">GitHub</a>
+            <a href="https://github.com/mnizarzr/wol/issues" class="footer__link" target="_blank"
+                rel="noopener noreferrer">Report Issue</a>
+            <a href="https://github.com/mnizarzr/wol/blob/main/README.md" class="footer__link" target="_blank"
+                rel="noopener noreferrer">Documentation</a>
         </div>
-        <div class="footer__credit">Crafted with <span class="footer__ascii">❤︎</span> by <a href="https://github.com/Trugamr" class="footer__link" target="_blank" rel="noopener noreferrer">Trugamr</a></div>
         <div class="footer__version">Version: {{.Version}} ({{.Commit}}) - Built at: {{.Date}}</div>
     </footer>
     <script>
         const source = new EventSource('/status');
 
-        source.onmessage = function(event) {
+        source.onmessage = function (event) {
             const statuses = JSON.parse(event.data);
 
             // Get all machines on the page
             const machines = document.querySelectorAll('.machine');
 
             // Iterate over machines and update their status
-            for(const machine of machines) {
+            for (const machine of machines) {
                 if (machine.dataset.name in statuses) {
                     const status = statuses[machine.dataset.name];
                     const element = machine.querySelector('.machine__status');
                     element.dataset.status = status;
                 }
             }
-        }
-
-        // Cleanup EventSource when page is unloaded
+        }        // Cleanup EventSource when page is unloaded
         window.addEventListener('unload', () => {
             source.close();
         });
+
+        function confirmWake(machineName) {
+            return confirm(`Are you sure you want to wake up "${machineName}"?`);
+        }
+
+        function confirmSleep(machineName) {
+            const firstConfirm = confirm(`Are you sure you want to put "${machineName}" to sleep?`);
+            if (!firstConfirm) {
+                return false;
+            }
+
+            return confirm(`Are you really really sure you want to put "${machineName}" to sleep?`);
+        }
     </script>
 </body>
+
 </html>

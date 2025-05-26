@@ -1,5 +1,7 @@
 # wol 🦭
 
+Hard-fork of [trugamr/wol](https://github.com/trugamr/wol). Modifying to suit my use.
+
 A CLI tool to send Wake-On-LAN (WOL) magic packets to wake up devices on your
 network. Features both CLI commands and a web interface.
 
@@ -7,7 +9,7 @@ network. Features both CLI commands and a web interface.
 
 ## Features
 
-- Send WOL magic packets via CLI or web interface
+- Send WOL and SOL magic packets via CLI or web interface
 - Configure multiple machines with names for easy access
 - List configured machines
 - Web interface for easy wake-up
@@ -18,7 +20,7 @@ network. Features both CLI commands and a web interface.
 ### Pre-built binaries
 
 Download the latest release for your platform from the
-[releases page](https://github.com/trugamr/wol/releases).
+[releases page](https://github.com/mnizarzr/wol/releases).
 
 Available for:
 
@@ -29,7 +31,7 @@ Available for:
 ### Using Go
 
 ```sh
-go install github.com/trugamr/wol@latest
+go install github.com/mnizarzr/wol@latest
 ```
 
 ### Using Docker
@@ -80,6 +82,8 @@ reverse proxy with basic auth, https etc.
 > properly on your local network.
 
 ## Configuration
+
+Install [SleepOnLan](https://github.com/SR-G/sleep-on-lan) on target machines that you need to be able to put to sleep.
 
 Create a `config.yaml` file in one of these locations (in order of precedence):
 
@@ -158,7 +162,7 @@ command. It provides:
 
 ```sh
 # Clone the repository
-git clone https://github.com/trugamr/wol.git
+git clone https://github.com/mnizarzr/wol.git
 cd wol
 
 # Build
@@ -177,7 +181,7 @@ When running in a Docker container, the machine status feature that uses ping ma
 To fix this issue, you need to set the following sysctl parameter on your host system:
 
 ```sh
-sysctl -w net.ipv4.ping_group_range="0 2147483647"
+sysctl -w mac.ipv4.ping_group_range="0 2147483647"
 ```
 
 To make this change persistent, add it to your `/etc/sysctl.conf` file.

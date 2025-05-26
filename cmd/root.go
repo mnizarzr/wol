@@ -3,8 +3,8 @@ package cmd
 import (
 	"os"
 
+	"github.com/mnizarzr/wol/config"
 	"github.com/spf13/cobra"
-	"github.com/trugamr/wol/config"
 )
 
 var cfg = config.NewConfig()

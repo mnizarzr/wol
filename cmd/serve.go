@@ -10,10 +10,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mnizarzr/wol/config"
+	"github.com/mnizarzr/wol/magicpacket"
 	probing "github.com/prometheus-community/pro-bing"
 	"github.com/spf13/cobra"
-	"github.com/trugamr/wol/config"
-	"github.com/trugamr/wol/magicpacket"
 )
 
 //go:embed templates/*
@@ -33,6 +33,7 @@ var serveCmd = &cobra.Command{
 
 		mux.HandleFunc("GET /{$}", handleIndex)
 		mux.HandleFunc("POST /wake", handleWake)
+		mux.HandleFunc("POST /sleep", handleSleep)
 		mux.HandleFunc("GET /status", handleStatus)
 
 		log.Printf("Listening on %s", cfg.Server.Listen)
@@ -96,7 +97,7 @@ func consumeFlashMessage(w http.ResponseWriter, r *http.Request) string {
 
 func handleWake(w http.ResponseWriter, r *http.Request) {
 	machineName := r.FormValue("name")
-	mac, err := getMacByName(machineName)
+	mac, err := getMacByName(machineName, false)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -112,6 +113,28 @@ func handleWake(w http.ResponseWriter, r *http.Request) {
 
 	// Set flash message cookie
 	setFlashMessage(w, fmt.Sprintf("Wake-up signal sent to %s. The machine should wake up shortly.", machineName))
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func handleSleep(w http.ResponseWriter, r *http.Request) {
+	machineName := r.FormValue("name")
+	mac, err := getMacByName(machineName, true)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Sending magic packet to %s", mac)
+	mp := magicpacket.NewMagicPacket(mac)
+	if err := mp.Broadcast(); err != nil {
+		log.Printf("Error sending magic packet: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Set flash message cookie
+	setFlashMessage(w, fmt.Sprintf("Sleep signal sent to %s. The machine should sleep shortly.", machineName))
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

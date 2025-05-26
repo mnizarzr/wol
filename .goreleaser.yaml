@@ -40,8 +40,8 @@ archives:
 
 dockers:
   - image_templates:
-      - "ghcr.io/trugamr/wol:{{ .Version }}-amd64"
-      - "ghcr.io/trugamr/wol:latest-amd64"
+      - "ghcr.io/mnizarzr/wol:{{ .Version }}-amd64"
+      - "ghcr.io/mnizarzr/wol:latest-amd64"
     dockerfile: docker/Dockerfile.template
     use: buildx
     build_flag_templates:
@@ -55,8 +55,8 @@ dockers:
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.licenses=MIT"
   - image_templates:
-      - "ghcr.io/trugamr/wol:{{ .Version }}-arm64"
-      - "ghcr.io/trugamr/wol:latest-arm64"
+      - "ghcr.io/mnizarzr/wol:{{ .Version }}-arm64"
+      - "ghcr.io/mnizarzr/wol:latest-arm64"
     dockerfile: docker/Dockerfile.template
     use: buildx
     goarch: arm64
@@ -71,8 +71,8 @@ dockers:
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.licenses=MIT"
   - image_templates:
-      - "ghcr.io/trugamr/wol:{{ .Version }}-armv7"
-      - "ghcr.io/trugamr/wol:latest-armv7"
+      - "ghcr.io/mnizarzr/wol:{{ .Version }}-armv7"
+      - "ghcr.io/mnizarzr/wol:latest-armv7"
     dockerfile: docker/Dockerfile.template
     use: buildx
     goarch: arm
@@ -89,16 +89,16 @@ dockers:
       - "--label=org.opencontainers.image.licenses=MIT"
 
 docker_manifests:
-  - name_template: ghcr.io/trugamr/wol:{{ .Version }}
+  - name_template: ghcr.io/mnizarzr/wol:{{ .Version }}
     image_templates:
-      - ghcr.io/trugamr/wol:{{ .Version }}-amd64
-      - ghcr.io/trugamr/wol:{{ .Version }}-arm64
-      - ghcr.io/trugamr/wol:{{ .Version }}-armv7
-  - name_template: ghcr.io/trugamr/wol:latest
+      - ghcr.io/mnizarzr/wol:{{ .Version }}-amd64
+      - ghcr.io/mnizarzr/wol:{{ .Version }}-arm64
+      - ghcr.io/mnizarzr/wol:{{ .Version }}-armv7
+  - name_template: ghcr.io/mnizarzr/wol:latest
     image_templates:
-      - ghcr.io/trugamr/wol:latest-amd64
-      - ghcr.io/trugamr/wol:latest-arm64
-      - ghcr.io/trugamr/wol:latest-armv7
+      - ghcr.io/mnizarzr/wol:latest-amd64
+      - ghcr.io/mnizarzr/wol:latest-arm64
+      - ghcr.io/mnizarzr/wol:latest-armv7
 
 changelog:
   sort: asc

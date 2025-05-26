@@ -19,7 +19,7 @@ services:
       - host.docker.internal:172.17.0.1
 
   wol:
-    image: ghcr.io/trugamr/wol:latest
+    image: ghcr.io/mnizarzr/wol:latest
     network_mode: host
     command: serve
     environment:

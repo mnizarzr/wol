@@ -37,7 +37,7 @@ go install github.com/mnizarzr/wol@latest
 ### Using Docker
 
 ```sh
-docker run --network host -v $(pwd)/config.yaml:/etc/wol/config.yaml ghcr.io/trugamr/wol:latest
+docker run --network host -v $(pwd)/config.yaml:/etc/wol/config.yaml ghcr.io/mnizarzr/wol:latest
 ```
 
 Or using docker-compose:
@@ -46,7 +46,7 @@ Or using docker-compose:
 # Method 1: Using bind mount
 services:
   wol:
-    image: ghcr.io/trugamr/wol:latest
+    image: ghcr.io/mnizarzr/wol:latest
     command: serve # To start the web interface
     network_mode: "host"
     volumes:
@@ -55,7 +55,7 @@ services:
 # Method 2: Using environment variables
 services:
   wol:
-    image: ghcr.io/trugamr/wol:latest
+    image: ghcr.io/mnizarzr/wol:latest
     command: serve # To start the web interface
     network_mode: "host"
     environment:

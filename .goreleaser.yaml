@@ -26,7 +26,7 @@ builds:
       - -X github.com/mnizarzr/wol/cmd.date={{.Date}}
 
 archives:
-  - formats: [ tar.gz, zip ]
+  - formats: [ tar.gz ]
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -34,8 +34,9 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-  - format_overrides:
-      - formats: [ 'zip' ]
+    format_overrides:
+      - goos: windows
+        format: zip
 
 dockers:
   - image_templates:

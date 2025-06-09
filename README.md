@@ -181,7 +181,7 @@ When running in a Docker container, the machine status feature that uses ping ma
 To fix this issue, you need to set the following sysctl parameter on your host system:
 
 ```sh
-sysctl -w mac.ipv4.ping_group_range="0 2147483647"
+sysctl -w net.ipv4.ping_group_range="0 2147483647"
 ```
 
 To make this change persistent, add it to your `/etc/sysctl.conf` file.

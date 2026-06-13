@@ -6,6 +6,7 @@ import (
 	"net"
 	"strings"
 
+	"github.com/mnizarzr/wol/config"
 	"github.com/mnizarzr/wol/mac"
 	"github.com/mnizarzr/wol/magicpacket"
 	"github.com/spf13/cobra"
@@ -71,7 +72,7 @@ func getTargetMacAddress(cmd *cobra.Command) (net.HardwareAddr, error) {
 		if err != nil {
 			return nil, err
 		}
-		return getMacByName(name, false)
+		return getMacByName(cfg.Machines, name, false)
 
 	default:
 		return nil, fmt.Errorf("either --mac or --name must be specified")
@@ -79,8 +80,8 @@ func getTargetMacAddress(cmd *cobra.Command) (net.HardwareAddr, error) {
 }
 
 // getMacByName returns the MAC address of the machine with the specified name
-func getMacByName(name string, reverse bool) (net.HardwareAddr, error) {
-	for _, machine := range cfg.Machines {
+func getMacByName(machines []config.Machine, name string, reverse bool) (net.HardwareAddr, error) {
+	for _, machine := range machines {
 		if strings.EqualFold(machine.Name, name) {
 			m := machine.Mac
 			if reverse {

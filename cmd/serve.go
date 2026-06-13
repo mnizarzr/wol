@@ -13,10 +13,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mnizarzr/wol/config"
-	"github.com/mnizarzr/wol/magicpacket"
 	probing "github.com/prometheus-community/pro-bing"
 	"github.com/spf13/cobra"
+	"github.com/mnizarzr/wol/config"
+	"github.com/mnizarzr/wol/magicpacket"
 )
 
 //go:embed templates/*
@@ -53,12 +53,13 @@ type Pinger interface {
 	Reachable(addr string) (bool, error)
 }
 
-// waker sends a wake-on-LAN magic packet to the given MAC address.
-type waker func(mac net.HardwareAddr) error
+// waker sends a wake-on-LAN magic packet to the given MAC address, broadcasting
+// to addr (a "host:port" target).
+type waker func(mac net.HardwareAddr, addr string) error
 
 // broadcastWake is the production waker: it broadcasts a real magic packet.
-func broadcastWake(mac net.HardwareAddr) error {
-	return magicpacket.NewMagicPacket(mac).Broadcast()
+func broadcastWake(mac net.HardwareAddr, addr string) error {
+	return magicpacket.NewMagicPacket(mac).Broadcast(addr)
 }
 
 // server holds the dependencies for the web handlers. Injecting them (rather
@@ -137,14 +138,21 @@ func consumeFlashMessage(w http.ResponseWriter, r *http.Request) string {
 
 func (s *server) handleWake(w http.ResponseWriter, r *http.Request) {
 	machineName := r.FormValue("name")
-	mac, err := getMacByName(s.cfg.Machines, machineName, false)
+	machine, err := s.cfg.MachineByName(machineName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("Sending magic packet to %s", mac)
-	if err := s.wake(mac); err != nil {
+	mac, err := machine.HardwareAddr()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	addr := s.cfg.BroadcastFor(machine).Addr()
+	log.Printf("Sending magic packet to %s via %s", mac, addr)
+	if err := s.wake(mac, addr); err != nil {
 		log.Printf("Error sending magic packet: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -158,14 +166,27 @@ func (s *server) handleWake(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) handleSleep(w http.ResponseWriter, r *http.Request) {
 	machineName := r.FormValue("name")
-	mac, err := getMacByName(s.cfg.Machines, machineName, true)
+	machine, err := s.cfg.MachineByName(machineName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("Sending magic packet to %s", mac)
-	if err := s.wake(mac); err != nil {
+	mac, err := machine.HardwareAddr()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	mac, err = reverseMac(mac)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	addr := s.cfg.BroadcastFor(machine).Addr()
+	log.Printf("Sending magic packet to %s via %s", mac, addr)
+	if err := s.wake(mac, addr); err != nil {
 		log.Printf("Error sending magic packet: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

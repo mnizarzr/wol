@@ -63,7 +63,7 @@ func handleApiWake(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Sending magic packet to %s", request.MacAddress)
 	mp := magicpacket.NewMagicPacket(mac)
-	if err := mp.Broadcast(); err != nil {
+	if err := mp.Broadcast(cfg.Broadcast.Addr()); err != nil {
 		log.Printf("Error sending magic packet: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

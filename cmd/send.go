@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"strings"
 
-	"github.com/mnizarzr/wol/config"
 	"github.com/mnizarzr/wol/mac"
 	"github.com/mnizarzr/wol/magicpacket"
 	"github.com/spf13/cobra"
@@ -17,6 +15,8 @@ func init() {
 
 	sendCmd.Flags().StringP("mac", "m", "", "MAC address of the device to wake up or put to sleep.")
 	sendCmd.Flags().StringP("name", "n", "", "Name of the device to wake up or put to sleep.")
+	sendCmd.Flags().StringP("broadcast", "b", "", "Broadcast address to send the magic packet to (overrides config)")
+	sendCmd.Flags().IntP("port", "p", 0, "UDP port to send the magic packet to (overrides config)")
 }
 
 var sendCmd = &cobra.Command{
@@ -34,67 +34,75 @@ var sendCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		action := args[0]
 
-		macAddr, err := getTargetMacAddress(cmd)
-		if err != nil {
-			cobra.CheckErr(err)
+		var macAddr net.HardwareAddr
+		// Default to the global broadcast target; the --name path may refine it
+		// with the machine's per-machine override.
+		broadcast := cfg.Broadcast
+
+		switch {
+		case cmd.Flags().Changed("mac"):
+			value, err := cmd.Flags().GetString("mac")
+			if err != nil {
+				cobra.CheckErr(err)
+			}
+
+			macAddr, err = net.ParseMAC(value)
+			if err != nil {
+				cobra.CheckErr(err)
+			}
+		case cmd.Flags().Changed("name"):
+			name, err := cmd.Flags().GetString("name")
+			if err != nil {
+				cobra.CheckErr(err)
+			}
+
+			machine, err := cfg.MachineByName(name)
+			if err != nil {
+				cobra.CheckErr(err)
+			}
+
+			macAddr, err = machine.HardwareAddr()
+			if err != nil {
+				cobra.CheckErr(err)
+			}
+			broadcast = cfg.BroadcastFor(machine)
+		default:
+			log.Fatalf("mac address should come from either --mac or --name")
 		}
 
 		if action == "sleep" {
+			var err error
 			macAddr, err = reverseMac(macAddr)
 			if err != nil {
 				cobra.CheckErr(err)
 			}
 		}
 
-		log.Printf("Sending magic packet to %s (action: %s)", macAddr, action)
+		// Command-line flags take precedence over config.
+		if cmd.Flags().Changed("broadcast") {
+			value, err := cmd.Flags().GetString("broadcast")
+			if err != nil {
+				cobra.CheckErr(err)
+			}
+			broadcast.Address = value
+		}
+		if cmd.Flags().Changed("port") {
+			value, err := cmd.Flags().GetInt("port")
+			if err != nil {
+				cobra.CheckErr(err)
+			}
+			broadcast.Port = value
+		}
 
+		addr := broadcast.Addr()
+		log.Printf("Sending magic packet to %s via %s (action: %s)", macAddr, addr, action)
 		mp := magicpacket.NewMagicPacket(macAddr)
-		if err := mp.Broadcast(); err != nil {
+		if err := mp.Broadcast(addr); err != nil {
 			cobra.CheckErr(err)
 		}
 
 		log.Printf("Magic packet sent for %s action", action)
 	},
-}
-
-// getTargetMacAddress determines the MAC address based on either --mac or --name
-func getTargetMacAddress(cmd *cobra.Command) (net.HardwareAddr, error) {
-	switch {
-	case cmd.Flags().Changed("mac"):
-		macStr, err := cmd.Flags().GetString("mac")
-		if err != nil {
-			return nil, err
-		}
-		return net.ParseMAC(macStr)
-
-	case cmd.Flags().Changed("name"):
-		name, err := cmd.Flags().GetString("name")
-		if err != nil {
-			return nil, err
-		}
-		return getMacByName(cfg.Machines, name, false)
-
-	default:
-		return nil, fmt.Errorf("either --mac or --name must be specified")
-	}
-}
-
-// getMacByName returns the MAC address of the machine with the specified name
-func getMacByName(machines []config.Machine, name string, reverse bool) (net.HardwareAddr, error) {
-	for _, machine := range machines {
-		if strings.EqualFold(machine.Name, name) {
-			m := machine.Mac
-			if reverse {
-				m = mac.ReverseMacAddress(m)
-			}
-			macAddr, err := net.ParseMAC(m)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse MAC address: %w", err)
-			}
-			return macAddr, nil
-		}
-	}
-	return nil, fmt.Errorf("machine with name %q not found", name)
 }
 
 // reverseMac reverses the string representation of the MAC address

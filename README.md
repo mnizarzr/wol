@@ -254,6 +254,18 @@ go build
 ./wol
 ```
 
+### Development checks
+
+The project uses Go 1.27. Run the same checks as CI before submitting Go changes:
+
+```sh
+go build ./...
+go vet ./...
+go test -race ./...
+```
+
+CI also runs `golangci-lint` and checks the GoReleaser configuration.
+
 ## Known Issues
 
 ### Docker Container Ping Permissions

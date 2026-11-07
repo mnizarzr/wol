@@ -23,6 +23,9 @@ import (
 //go:embed templates/*
 var templates embed.FS
 
+// Parsed once at startup; embed contents are fixed in the binary.
+var indexTmpl = template.Must(template.ParseFS(templates, "templates/index.html"))
+
 func init() {
 	rootCmd.AddCommand(serveCmd)
 }
@@ -96,24 +99,14 @@ func (s *server) routes() http.Handler {
 }
 
 func (s *server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	// Parse the template
-	index, err := template.ParseFS(templates, "templates/index.html")
-	if err != nil {
-		log.Printf("Error parsing template: %v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	// Execute the template
 	data := map[string]interface{}{
 		"Machines": s.cfg.Machines,
 		"Version":  version,
 		"Commit":   commit,
 		"Date":     date,
 	}
-	data["FlashMessage"], data["FlashKind"] = consumeFlashMessage(w, r) // Get flash message from cookie
-	err = index.Execute(w, data)
-	if err != nil {
+	data["FlashMessage"], data["FlashKind"] = consumeFlashMessage(w, r)
+	if err := indexTmpl.Execute(w, data); err != nil {
 		log.Printf("Error executing template: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return

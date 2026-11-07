@@ -258,7 +258,6 @@ func (s *server) machinesStatus() map[string]string {
 			status, err := s.machineStatus(machine)
 			if err != nil {
 				log.Printf("Error getting status for machine %s: %v", machine.Name, err)
-				return
 			}
 
 			mu.Lock()

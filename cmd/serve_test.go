@@ -20,9 +20,13 @@ func strptr(s string) *string { return &s }
 // fakePinger is a test Pinger that returns canned reachability per address.
 type fakePinger struct {
 	reachable map[string]bool
+	errors    map[string]error
 }
 
 func (f fakePinger) Reachable(addr string) (bool, error) {
+	if err, ok := f.errors[addr]; ok {
+		return false, err
+	}
 	return f.reachable[addr], nil
 }
 
@@ -165,4 +169,22 @@ func TestWriteMachinesStatusFrame(t *testing.T) {
 		"off":     "offline",
 		"unknown": "unknown",
 	}, statuses)
+}
+
+func TestWriteMachinesStatusIncludesPingErrors(t *testing.T) {
+	cfg := &config.Config{
+		Machines: []config.Machine{
+			{Name: "flaky", IP: strptr("10.0.0.3")},
+		},
+	}
+	pinger := fakePinger{errors: map[string]error{
+		"10.0.0.3": assert.AnError,
+	}}
+	var buf bytes.Buffer
+	require.NoError(t, newServer(cfg, pinger, nil).writeMachinesStatus(&buf))
+
+	payload := strings.TrimSuffix(strings.TrimPrefix(buf.String(), "data: "), "\n\n")
+	var statuses map[string]string
+	require.NoError(t, json.Unmarshal([]byte(payload), &statuses))
+	assert.Equal(t, map[string]string{"flaky": "unknown"}, statuses)
 }

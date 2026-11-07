@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
-	"github.com/robfig/cron/v3"
 	"github.com/mnizarzr/wol/config"
+	"github.com/robfig/cron/v3"
 )
 
 // resolvedSchedule is a config.Schedule that has been validated against the

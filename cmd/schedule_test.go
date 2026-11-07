@@ -4,9 +4,9 @@ import (
 	"net"
 	"testing"
 
+	"github.com/mnizarzr/wol/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/mnizarzr/wol/config"
 )
 
 func TestResolveSchedules(t *testing.T) {

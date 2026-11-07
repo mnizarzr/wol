@@ -36,7 +36,7 @@ var serveApiCmd = &cobra.Command{
 const maxAPIBody = 1 << 20 // 1 MiB
 
 func handleApiWake(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
+	defer func() { _ = r.Body.Close() }()
 	body, err := io.ReadAll(io.LimitReader(r.Body, maxAPIBody+1))
 	if err != nil {
 		http.Error(w, "Error reading request body", http.StatusBadRequest)

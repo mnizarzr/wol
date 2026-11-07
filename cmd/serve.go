@@ -14,10 +14,10 @@ import (
 	"sync"
 	"time"
 
-	probing "github.com/prometheus-community/pro-bing"
-	"github.com/spf13/cobra"
 	"github.com/mnizarzr/wol/config"
 	"github.com/mnizarzr/wol/magicpacket"
+	probing "github.com/prometheus-community/pro-bing"
+	"github.com/spf13/cobra"
 )
 
 //go:embed templates/*
@@ -89,8 +89,8 @@ func newServer(cfg *config.Config, pinger Pinger, wake waker) *server {
 func (s *server) routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", s.handleIndex)
-	mux.HandleFunc("POST /wake", s.handleWake)
-	mux.HandleFunc("POST /sleep", s.handleSleep)
+	mux.HandleFunc("POST /wake", s.handleAction("wake"))
+	mux.HandleFunc("POST /sleep", s.handleAction("sleep"))
 	mux.HandleFunc("GET /status", s.handleStatus)
 	return mux
 }
@@ -106,10 +106,10 @@ func (s *server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 	// Execute the template
 	data := map[string]interface{}{
-		"Machines":     s.cfg.Machines,
-		"Version":      version,
-		"Commit":       commit,
-		"Date":         date,
+		"Machines": s.cfg.Machines,
+		"Version":  version,
+		"Commit":   commit,
+		"Date":     date,
 	}
 	data["FlashMessage"], data["FlashKind"] = consumeFlashMessage(w, r) // Get flash message from cookie
 	err = index.Execute(w, data)
@@ -165,66 +165,47 @@ func consumeFlashMessage(w http.ResponseWriter, r *http.Request) (message, kind 
 	return cookie.Value, kind
 }
 
-func (s *server) handleWake(w http.ResponseWriter, r *http.Request) {
-	machineName := r.FormValue("name")
-	machine, err := s.cfg.MachineByName(machineName)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+// handleAction returns a handler for POST /wake or POST /sleep. sleep reverses
+// the MAC for Sleep-on-LAN; wake sends the configured MAC as-is.
+func (s *server) handleAction(action string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		machineName := r.FormValue("name")
+		machine, err := s.cfg.MachineByName(machineName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		mac, err := machine.HardwareAddr()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if action == "sleep" {
+			mac, err = reverseMac(mac)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+
+		addr := s.cfg.BroadcastFor(machine).Addr()
+		log.Printf("Sending magic packet to %s via %s", mac, addr)
+		if err := s.wake(mac, addr); err != nil {
+			log.Printf("Error sending magic packet: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		msg := fmt.Sprintf("Wake-up signal sent to %s. The machine should wake up shortly.", machineName)
+		if action == "sleep" {
+			msg = fmt.Sprintf("Sleep signal sent to %s. The machine should sleep shortly.", machineName)
+		}
+		setFlashMessage(w, action, msg)
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
-
-	mac, err := machine.HardwareAddr()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	addr := s.cfg.BroadcastFor(machine).Addr()
-	log.Printf("Sending magic packet to %s via %s", mac, addr)
-	if err := s.wake(mac, addr); err != nil {
-		log.Printf("Error sending magic packet: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Set flash message cookie
-	setFlashMessage(w, "wake", fmt.Sprintf("Wake-up signal sent to %s. The machine should wake up shortly.", machineName))
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func (s *server) handleSleep(w http.ResponseWriter, r *http.Request) {
-	machineName := r.FormValue("name")
-	machine, err := s.cfg.MachineByName(machineName)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	mac, err := machine.HardwareAddr()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	mac, err = reverseMac(mac)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	addr := s.cfg.BroadcastFor(machine).Addr()
-	log.Printf("Sending magic packet to %s via %s", mac, addr)
-	if err := s.wake(mac, addr); err != nil {
-		log.Printf("Error sending magic packet: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Set flash message cookie
-	setFlashMessage(w, "sleep", fmt.Sprintf("Sleep signal sent to %s. The machine should sleep shortly.", machineName))
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 // machineStatus returns the status of a single machine.

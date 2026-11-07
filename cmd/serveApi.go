@@ -33,13 +33,19 @@ var serveApiCmd = &cobra.Command{
 	},
 }
 
+const maxAPIBody = 1 << 20 // 1 MiB
+
 func handleApiWake(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
+	body, err := io.ReadAll(io.LimitReader(r.Body, maxAPIBody+1))
 	if err != nil {
 		http.Error(w, "Error reading request body", http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
+	if len(body) > maxAPIBody {
+		http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
+		return
+	}
 
 	var request struct {
 		MacAddress string `json:"mac_address"`

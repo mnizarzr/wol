@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mnizarzr/wol/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/mnizarzr/wol/config"
 )
 
 func TestHandleApiWake(t *testing.T) {
@@ -41,6 +41,13 @@ func TestHandleApiWake(t *testing.T) {
 		rec := httptest.NewRecorder()
 		handleApiWake(rec, req)
 		assert.Equal(t, http.StatusNoContent, rec.Code)
+	})
+
+	t.Run("body too large", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/wake", strings.NewReader(strings.Repeat("x", maxAPIBody+1)))
+		rec := httptest.NewRecorder()
+		handleApiWake(rec, req)
+		assert.Equal(t, http.StatusRequestEntityTooLarge, rec.Code)
 	})
 }
 

@@ -209,15 +209,18 @@ so misconfiguration is caught immediately rather than silently never firing.
 # List all configured machines
 wol list
 
-# Wake up a machine by name
-wol send --name desktop
+# Wake up a machine by name (action is wake or sleep)
+wol send wake --name desktop
+
+# Put a machine to sleep by name (requires Sleep-on-LAN on the target)
+wol send sleep --name desktop
 
 # Wake up a machine by MAC address
-wol send --mac "00:11:22:33:44:55"
+wol send wake --mac "00:11:22:33:44:55"
 
 # Override the broadcast address and port for a single send
 # (for example, to reach a device on a specific subnet)
-wol send --mac "00:11:22:33:44:55" --broadcast 192.168.1.255 --port 9
+wol send wake --mac "00:11:22:33:44:55" --broadcast 192.168.1.255 --port 9
 
 # Start the web interface
 wol serve

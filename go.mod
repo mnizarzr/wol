@@ -1,6 +1,6 @@
 module github.com/mnizarzr/wol
 
-go 1.26
+go 1.27
 
 require (
 	github.com/knadh/koanf/parsers/yaml v1.1.0

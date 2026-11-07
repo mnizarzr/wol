@@ -1,6 +1,6 @@
 # Build on the runner's native arch and cross-compile to the target arch, so
 # multi-arch builds don't emulate the whole Go toolchain under QEMU.
-FROM --platform=$BUILDPLATFORM golang:1.26.4-alpine3.24 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.27.3-alpine3.24 AS builder
 
 WORKDIR /app
 

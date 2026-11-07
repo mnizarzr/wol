@@ -243,6 +243,11 @@ command. It provides:
 - Version information
 - Links to documentation and support
 
+`serve` has no built-in authentication. Put a reverse proxy with auth (for
+example Caddy basic auth) or Tailscale in front, and do not expose `:7777` on an
+untrusted network. See `examples/reverse-proxy.yml` for a Traefik + basic-auth
+setup.
+
 ## Building from Source
 
 ```sh

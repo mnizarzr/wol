@@ -33,6 +33,9 @@ var sendCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		action := args[0]
+		if action != "wake" && action != "sleep" {
+			cobra.CheckErr(fmt.Errorf("action must be wake or sleep, got %q", action))
+		}
 
 		var macAddr net.HardwareAddr
 		// Default to the global broadcast target; the --name path may refine it

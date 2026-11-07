@@ -110,8 +110,8 @@ func (s *server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		"Version":      version,
 		"Commit":       commit,
 		"Date":         date,
-		"FlashMessage": consumeFlashMessage(w, r), // Get flash message from cookie
 	}
+	data["FlashMessage"], data["FlashKind"] = consumeFlashMessage(w, r) // Get flash message from cookie
 	err = index.Execute(w, data)
 	if err != nil {
 		log.Printf("Error executing template: %v", err)
@@ -122,33 +122,47 @@ func (s *server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 // setFlashMessage stores a flash message in a cookie, URL-encoded so non-ASCII
 // bytes survive net/http's cookie-value validation rather than being dropped.
-func setFlashMessage(w http.ResponseWriter, message string) {
+// kind ("wake" or "sleep") lets the page style the message per action.
+func setFlashMessage(w http.ResponseWriter, kind, message string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:  "flash",
 		Value: url.QueryEscape(message),
 		Path:  "/",
 	})
+	http.SetCookie(w, &http.Cookie{
+		Name:  "flash_kind",
+		Value: kind,
+		Path:  "/",
+	})
 }
 
-// consumeFlashMessage retrieves, decodes, and clears the flash message cookie.
-func consumeFlashMessage(w http.ResponseWriter, r *http.Request) string {
+// consumeFlashMessage retrieves, decodes, and clears the flash cookies. The
+// returned kind is "sleep" or "wake"; anything else falls back to "wake".
+func consumeFlashMessage(w http.ResponseWriter, r *http.Request) (message, kind string) {
 	cookie, err := r.Cookie("flash")
-	if err == nil {
-		// Clear the cookie
+	if err != nil {
+		return "", ""
+	}
+	kind = "wake"
+	if k, err := r.Cookie("flash_kind"); err == nil && k.Value == "sleep" {
+		kind = "sleep"
+	}
+
+	// Clear the cookies
+	for _, name := range []string{"flash", "flash_kind"} {
 		http.SetCookie(w, &http.Cookie{
-			Name:    "flash",
+			Name:    name,
 			Value:   "",
 			Path:    "/",
 			Expires: time.Now().Add(-1 * time.Hour),
 		})
-
-		// Fall back to the raw value if decoding fails.
-		if message, err := url.QueryUnescape(cookie.Value); err == nil {
-			return message
-		}
-		return cookie.Value
 	}
-	return ""
+
+	// Fall back to the raw value if decoding fails.
+	if message, err := url.QueryUnescape(cookie.Value); err == nil {
+		return message, kind
+	}
+	return cookie.Value, kind
 }
 
 func (s *server) handleWake(w http.ResponseWriter, r *http.Request) {
@@ -174,7 +188,7 @@ func (s *server) handleWake(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set flash message cookie
-	setFlashMessage(w, fmt.Sprintf("Wake-up signal sent to %s. The machine should wake up shortly.", machineName))
+	setFlashMessage(w, "wake", fmt.Sprintf("Wake-up signal sent to %s. The machine should wake up shortly.", machineName))
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -208,7 +222,7 @@ func (s *server) handleSleep(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set flash message cookie
-	setFlashMessage(w, fmt.Sprintf("Sleep signal sent to %s. The machine should sleep shortly.", machineName))
+	setFlashMessage(w, "sleep", fmt.Sprintf("Sleep signal sent to %s. The machine should sleep shortly.", machineName))
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

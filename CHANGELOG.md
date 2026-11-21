@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/mnizarzr/wol/compare/v0.2.0...v0.3.0) (2026-11-21)
+
+
+### Features
+
+* support optional TCP probe port with ICMP fallback ([5cd1439](https://github.com/mnizarzr/wol/commit/5cd1439eb2d2144ae672e919cd785cbde8a7a0fd))
+
 ## [0.2.0](https://github.com/mnizarzr/wol/compare/v0.1.2...v0.2.0) (2026-11-07)
 
 

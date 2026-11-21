@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -23,11 +24,15 @@ type fakePinger struct {
 	errors    map[string]error
 }
 
-func (f fakePinger) Reachable(addr string) (bool, error) {
-	if err, ok := f.errors[addr]; ok {
+func (f fakePinger) Reachable(host string, port int) (bool, error) {
+	key := host
+	if port > 0 {
+		key = net.JoinHostPort(host, strconv.Itoa(port))
+	}
+	if err, ok := f.errors[key]; ok {
 		return false, err
 	}
-	return f.reachable[addr], nil
+	return f.reachable[key], nil
 }
 
 func TestHandleIndexRendersMachines(t *testing.T) {
@@ -146,13 +151,17 @@ func TestWriteMachinesStatusFrame(t *testing.T) {
 	cfg := &config.Config{
 		Machines: []config.Machine{
 			{Name: "on", IP: strptr("10.0.0.1")},
+			{Name: "tcp-on", IP: strptr("10.0.0.4"), Port: 22},
+			{Name: "tcp-off", IP: strptr("10.0.0.5"), Port: 3389},
 			{Name: "off", IP: strptr("10.0.0.2")},
 			{Name: "unknown", IP: nil},
 		},
 	}
 	pinger := fakePinger{reachable: map[string]bool{
-		"10.0.0.1": true,
-		"10.0.0.2": false,
+		"10.0.0.1":      true,
+		"10.0.0.4:22":   true,
+		"10.0.0.5:3389": false,
+		"10.0.0.2":      false,
 	}}
 	var buf bytes.Buffer
 	require.NoError(t, newServer(cfg, pinger, nil).writeMachinesStatus(&buf))
@@ -166,6 +175,8 @@ func TestWriteMachinesStatusFrame(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(payload), &statuses))
 	assert.Equal(t, map[string]string{
 		"on":      "online",
+		"tcp-on":  "online",
+		"tcp-off": "offline",
 		"off":     "offline",
 		"unknown": "unknown",
 	}, statuses)
@@ -187,4 +198,29 @@ func TestWriteMachinesStatusIncludesPingErrors(t *testing.T) {
 	var statuses map[string]string
 	require.NoError(t, json.Unmarshal([]byte(payload), &statuses))
 	assert.Equal(t, map[string]string{"flaky": "unknown"}, statuses)
+}
+
+func TestProbingPingerTCP(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	port := ln.Addr().(*net.TCPAddr).Port
+
+	p := newProbingPinger(false)
+	reachable, err := p.Reachable("127.0.0.1", port)
+	require.NoError(t, err)
+	assert.True(t, reachable)
+
+	require.NoError(t, ln.Close())
+	reachable, err = p.Reachable("127.0.0.1", port)
+	require.NoError(t, err)
+	assert.False(t, reachable)
+}
+
+func TestProbingPingerInvalidPort(t *testing.T) {
+	p := newProbingPinger(false)
+	for _, port := range []int{-1, 65536} {
+		reachable, err := p.Reachable("127.0.0.1", port)
+		require.Error(t, err)
+		assert.False(t, reachable)
+	}
 }

@@ -1,6 +1,8 @@
 machines:
   - name: desktop
     mac: 00:00:00:00:00:01
+    # ip: 192.168.1.100 # Optional, for status checking (uses ICMP unless port is set)
+    # port: 22          # Optional, uses TCP probe instead of ICMP when set
   - name: laptop
     mac: 00:00:00:00:00:02
     # Per-machine override: useful when this machine lives on a different

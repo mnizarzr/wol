@@ -30,6 +30,8 @@ type Machine struct {
 	Mac string `koanf:"mac"`
 	// Hostname or IP address of the machine (optional)
 	IP *string `koanf:"ip"`
+	// Optional TCP port for reachability checks; when > 0, uses a TCP probe instead of ICMP.
+	Port int `koanf:"port"`
 	// Broadcast optionally overrides the global broadcast target for this
 	// machine. Zero-value fields inherit the global setting. This is what lets a
 	// machine on a different subnet/VLAN use its own directed broadcast address.

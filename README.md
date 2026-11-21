@@ -133,6 +133,7 @@ machines:
   - name: desktop
     mac: "00:11:22:33:44:55"
     ip: "192.168.1.100" # Optional, for status checking
+    # port: 22  # Optional, uses TCP probe instead of ICMP when set
   - name: server
     mac: "AA:BB:CC:DD:EE:FF"
     ip: "server.local"

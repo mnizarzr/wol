@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -63,7 +64,7 @@ var serveCmd = &cobra.Command{
 
 // Pinger reports whether a network address is currently reachable.
 type Pinger interface {
-	Reachable(addr string) (bool, error)
+	Reachable(host string, port int) (bool, error)
 }
 
 // waker sends a wake-on-LAN magic packet to the given MAC address, broadcasting
@@ -207,7 +208,7 @@ func (s *server) machineStatus(machine config.Machine) (string, error) {
 		return "unknown", nil
 	}
 
-	reachable, err := s.pinger.Reachable(*machine.IP)
+	reachable, err := s.pinger.Reachable(*machine.IP, machine.Port)
 	if err != nil {
 		// Don't log here; machinesStatus logs the error once per machine.
 		return "unknown", err
@@ -303,10 +304,22 @@ func newProbingPinger(privileged bool) *probingPinger {
 	return &probingPinger{privileged: privileged}
 }
 
-func (p *probingPinger) Reachable(addr string) (bool, error) {
-	pinger, err := probing.NewPinger(addr)
+func (p *probingPinger) Reachable(host string, port int) (bool, error) {
+	if port < 0 || port > 65535 {
+		return false, fmt.Errorf("invalid port %d", port)
+	}
+	if port > 0 {
+		conn, err := net.DialTimeout("tcp", net.JoinHostPort(host, strconv.Itoa(port)), 2*time.Second)
+		if err != nil {
+			return false, nil
+		}
+		_ = conn.Close()
+		return true, nil
+	}
+
+	pinger, err := probing.NewPinger(host)
 	if err != nil {
-		// addr couldn't be resolved (e.g. an off machine's hostname). Treat as
+		// host couldn't be resolved (e.g. an off machine's hostname). Treat as
 		// unreachable instead of erroring, so the status poll doesn't log it each tick.
 		return false, nil
 	}

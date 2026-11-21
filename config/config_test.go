@@ -364,3 +364,26 @@ machines:
 	require.NoError(t, err)
 	assert.Empty(t, c.Schedules)
 }
+
+func TestLoadMachinePort(t *testing.T) {
+	t.Setenv(configEnvVar, "")
+
+	file := writeConfig(t, `
+machines:
+  - name: ssh-box
+    mac: "01:02:03:04:05:06"
+    ip: "192.168.1.10"
+    port: 22
+  - name: icmp-box
+    mac: "0a:0b:0c:0d:0e:0f"
+    ip: "192.168.1.11"
+`)
+
+	c := NewConfig()
+	_, err := c.load([]string{file}, true)
+	require.NoError(t, err)
+
+	require.Len(t, c.Machines, 2)
+	assert.Equal(t, 22, c.Machines[0].Port)
+	assert.Equal(t, 0, c.Machines[1].Port)
+}
